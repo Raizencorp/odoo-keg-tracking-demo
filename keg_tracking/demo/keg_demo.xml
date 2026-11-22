@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Brasserie des Aiguilles: independent craft brewery near Annecy, invoicing in EUR. -->
+    <record id="base.EUR" model="res.currency">
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="partner_brewery" model="res.partner">
+        <field name="name">Brasserie des Aiguilles</field>
+        <field name="is_company" eval="True"/>
+        <field name="street">ZA des Glaisins, 9 rue du Pré-Paillard</field>
+        <field name="zip">74940</field>
+        <field name="city">Annecy-le-Vieux</field>
+        <field name="country_id" ref="base.fr"/>
+        <field name="phone">+33 4 50 64 00 00</field>
+        <field name="email">contact@brasserie-aiguilles.example</field>
+    </record>
+
+    <record id="company_brewery" model="res.company">
+        <field name="name">Brasserie des Aiguilles</field>
+        <field name="partner_id" ref="partner_brewery"/>
+        <field name="currency_id" ref="base.EUR"/>
+    </record>
+
+    <function model="res.users" name="write">
+        <value eval="[ref('base.user_root'), ref('base.user_admin'), ref('base.user_demo')]"/>
+        <value eval="{'company_ids': [Command.link(ref('company_brewery'))]}"/>
+    </function>
+    <!-- The demo opens directly in the brewery. -->
+    <function model="res.users" name="write">
+        <value eval="[ref('base.user_admin'), ref('base.user_demo')]"/>
+        <value eval="{'company_id': ref('company_brewery')}"/>
+    </function>
+
+    <function model="account.chart.template" name="try_loading">
+        <value eval="[]"/>
+        <value>generic_coa</value>
+        <value model="res.company" eval="obj().env.ref('keg_tracking.company_brewery')"/>
+    </function>
+
+    <!-- French VAT: beer and lost kegs at 20 %; refundable deposits are outside the scope of VAT. -->
+    <record id="tax_group_tva_20" model="account.tax.group">
+        <field name="name">TVA 20 %</field>
+        <field name="company_id" ref="company_brewery"/>
+        <field name="country_id" ref="base.fr"/>
+    </record>
+
+    <record id="tax_tva_20" model="account.tax">
+        <field name="name">TVA 20 %</field>
+        <field name="description">TVA 20 %</field>
+        <field name="amount_type">percent</field>
+        <field name="amount">20</field>
+        <field name="type_tax_use">sale</field>
+        <field name="company_id" ref="company_brewery"/>
+        <field name="country_id" ref="base.fr"/>
+        <field name="tax_group_id" ref="tax_group_tva_20"/>
+    </record>
+
+    <record id="company_brewery" model="res.company">
+        <!-- The generic chart template switches the currency to USD: restore EUR (no entries exist yet). -->
+        <field name="currency_id" ref="base.EUR"/>
+        <field name="account_fiscal_country_id" ref="base.fr"/>
+        <field name="account_sale_tax_id" ref="tax_tva_20"/>
+    </record>
+
+    <!-- Accounting products -->
+    <record id="product_keg_deposit" model="product.product">
+        <field name="name">Keg Deposit</field>
+        <field name="default_code">DEPOSIT-KEG</field>
+        <field name="company_id" ref="company_brewery"/>
+        <field name="type">service</field>
+        <field name="invoice_policy">delivery</field>
+        <field name="list_price">0.0</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="taxes_id" eval="[Command.clear()]"/>
+        <field name="description_sale">Refundable deposit, returned when the keg is brought back.</field>
+    </record>
+
+    <record id="product_keg_loss" model="product.product">
+        <field name="name">Unreturned Keg</field>
+        <field name="default_code">LOSS-KEG</field>
+        <field name="company_id" ref="company_brewery"/>
+        <field name="taxes_id" eval="[Command.set([ref('tax_tva_20')])]"/>
+        <field name="type">service</field>
+        <field name="invoice_policy">order</field>
+        <field name="list_price">0.0</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="False"/>
+    </record>
+
+    <!-- Keg types -->
+    <record id="keg_type_20l" model="keg.type">
+        <field name="company_id" ref="company_brewery"/>
+        <field name="name">Stainless keg 20 L</field>
+        <field name="sequence">10</field>
+        <field name="capacity">20</field>
+        <field name="deposit_amount">30.0</field>
+        <field name="replacement_value">140.0</field>
+        <field name="max_days_at_customer">45</field>
+        <field name="deposit_product_id" ref="product_keg_deposit"/>
+        <field name="loss_product_id" ref="product_keg_loss"/>
+    </record>
+
+    <record id="keg_type_30l" model="keg.type">
+        <field name="company_id" ref="company_brewery"/>
+        <field name="name">Stainless keg 30 L</field>
+        <field name="sequence">20</field>
+        <field name="capacity">30</field>
+        <field name="deposit_amount">40.0</field>
+        <field name="replacement_value">165.0</field>
+        <field name="max_days_at_customer">60</field>
+        <field name="deposit_product_id" ref="product_keg_deposit"/>
+        <field name="loss_product_id" ref="product_keg_loss"/>
+    </record>
+
+    <!-- Draught beers -->
+    <record id="product_blonde_30l" model="product.product">
+        <field name="name">Blonde des Aiguilles – keg 30 L</field>
+        <field name="default_code">BLD-K30</field>
+        <field name="company_id" ref="company_brewery"/>
+        <field name="taxes_id" eval="[Command.set([ref('tax_tva_20')])]"/>
+        <field name="type">consu</field>
+        <field name="invoice_policy">delivery</field>
+        <field name="list_price">98.0</field>
+        <field name="keg_type_id" ref="keg_type_30l"/>
+        <field name="description_sale">Blonde ale, 5.2 % ABV – 30 L keg.</field>
+    </record>
+
+    <record id="product_ipa_20l" model="product.product">
+        <field name="name">IPA du Semnoz – keg 20 L</field>
+        <field name="default_code">IPA-K20</field>
+        <field name="company_id" ref="company_brewery"/>
+        <field name="taxes_id" eval="[Command.set([ref('tax_tva_20')])]"/>
+        <field name="type">consu</field>
+        <field name="invoice_policy">delivery</field>
+        <field name="list_price">89.0</field>
+        <field name="keg_type_id" ref="keg_type_20l"/>
+        <field name="description_sale">India Pale Ale, 6.5 % ABV – 20 L keg.</field>
+    </record>
+
+    <record id="product_stout_20l" model="product.product">
+        <field name="name">Stout de la Tournette – keg 20 L</field>
+        <field name="default_code">STT-K20</field>
+        <field name="company_id" ref="company_brewery"/>
+        <field name="taxes_id" eval="[Command.set([ref('tax_tva_20')])]"/>
+        <field name="type">consu</field>
+        <field name="invoice_policy">delivery</field>
+        <field name="list_price">92.0</field>
+        <field name="keg_type_id" ref="keg_type_20l"/>
+        <field name="description_sale">Oatmeal stout, 5.8 % ABV – 20 L keg.</field>
+    </record>
+
+    <!-- Customers -->
+    <record id="partner_comptoir" model="res.partner">
+        <field name="name">Le Comptoir du Lac</field>
+        <field name="is_company" eval="True"/>
+        <field name="street">12 quai Perrière</field>
+        <field name="zip">74000</field>
+        <field name="city">Annecy</field>
+        <field name="country_id" ref="base.fr"/>
+        <field name="phone">+33 4 50 00 12 34</field>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <record id="partner_belvedere" model="res.partner">
+        <field name="name">Restaurant Le Belvédère</field>
+        <field name="is_company" eval="True"/>
+        <field name="street">3 route du Port</field>
+        <field name="zip">74290</field>
+        <field name="city">Talloires-Montmin</field>
+        <field name="country_id" ref="base.fr"/>
+        <field name="user_id" ref="base.user_demo"/>
+    </record>
+
+    <record id="partner_altitude" model="res.partner">
+        <field name="name">Bar d'Altitude du Crêt</field>
+        <field name="is_company" eval="True"/>
+        <field name="street">Front de neige</field>
+        <field name="zip">74220</field>
+        <field name="city">La Clusaz</field>
+        <field name="country_id" ref="base.fr"/>
+        <field name="user_id" ref="base.user_demo"/>
+    </record>
+
+    <record id="partner_traiteur" model="res.partner">
+        <field name="name">Saveurs Alpines Traiteur</field>
+        <field name="is_company" eval="True"/>
+        <field name="street">45 avenue de Genève</field>
+        <field name="zip">74960</field>
+        <field name="city">Cran-Gevrier</field>
+        <field name="country_id" ref="base.fr"/>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <record id="partner_cerf_volant" model="res.partner">
+        <field name="name">Le Cerf-Volant</field>
+        <field name="is_company" eval="True"/>
+        <field name="street">8 rue Sainte-Claire</field>
+        <field name="zip">74000</field>
+        <field name="city">Annecy</field>
+        <field name="country_id" ref="base.fr"/>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <!-- Marc Demo handles deliveries: give him the cellar/logistics role. -->
+    <record id="group_keg_operator" model="res.groups">
+        <field name="users" eval="[Command.link(ref('base.user_demo'))]"/>
+    </record>
+
+    <!-- Sales orders (deposit lines are added automatically) -->
+    <record id="sale_order_traiteur_summer" model="sale.order">
+        <field name="company_id" ref="company_brewery"/>
+        <field name="partner_id" ref="partner_traiteur"/>
+        <field name="client_order_ref">Mariage Domaine de Menthon</field>
+        <field name="order_line" eval="[
+            Command.create({'product_id': ref('product_stout_20l'), 'product_uom_qty': 2}),
+        ]"/>
+    </record>
+
+    <record id="sale_order_comptoir" model="sale.order">
+        <field name="company_id" ref="company_brewery"/>
+        <field name="partner_id" ref="partner_comptoir"/>
+        <field name="order_line" eval="[
+            Command.create({'product_id': ref('product_blonde_30l'), 'product_uom_qty': 4}),
+            Command.create({'product_id': ref('product_ipa_20l'), 'product_uom_qty': 2}),
+        ]"/>
+    </record>
+
+    <record id="sale_order_belvedere" model="sale.order">
+        <field name="company_id" ref="company_brewery"/>
+        <field name="partner_id" ref="partner_belvedere"/>
+        <field name="order_line" eval="[
+            Command.create({'product_id': ref('product_blonde_30l'), 'product_uom_qty': 3}),
+            Command.create({'product_id': ref('product_stout_20l'), 'product_uom_qty': 3}),
+        ]"/>
+    </record>
+
+    <record id="sale_order_altitude" model="sale.order">
+        <field name="company_id" ref="company_brewery"/>
+        <field name="partner_id" ref="partner_altitude"/>
+        <field name="client_order_ref">Ouverture saison</field>
+        <field name="order_line" eval="[
+            Command.create({'product_id': ref('product_blonde_30l'), 'product_uom_qty': 6}),
+        ]"/>
+    </record>
+
+    <record id="sale_order_traiteur_winter" model="sale.order">
+        <field name="company_id" ref="company_brewery"/>
+        <field name="partner_id" ref="partner_traiteur"/>
+        <field name="client_order_ref">Séminaire Hôtel du Lac</field>
+        <field name="order_line" eval="[
+            Command.create({'product_id': ref('product_ipa_20l'), 'product_uom_qty': 2}),
+        ]"/>
+    </record>
+
+    <record id="sale_order_cerf_volant" model="sale.order">
+        <field name="company_id" ref="company_brewery"/>
+        <field name="partner_id" ref="partner_cerf_volant"/>
+        <field name="order_line" eval="[
+            Command.create({'product_id': ref('product_blonde_30l'), 'product_uom_qty': 3}),
+            Command.create({'product_id': ref('product_ipa_20l'), 'product_uom_qty': 1}),
+        ]"/>
+    </record>
+
+    <!-- Fleet and history, produced through the real workflow methods -->
+    <function model="keg.keg" name="_demo_load_scenario"/>
+</odoo>
