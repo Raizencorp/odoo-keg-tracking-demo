@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Warehouse staff validating deliveries load and receive kegs. -->
+    <record id="stock.group_stock_user" model="res.groups">
+        <field name="implied_ids" eval="[Command.link(ref('keg_tracking.group_keg_operator'))]"/>
+    </record>
+</odoo>

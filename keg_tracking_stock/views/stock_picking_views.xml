@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_keg" model="ir.ui.view">
+        <field name="name">stock.picking.form.keg</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <page name="operations" position="after">
+                <page string="Kegs" name="kegs" invisible="not keg_product_ids and not keg_ids"
+                      groups="keg_tracking.group_keg_user">
+                    <field name="keg_product_ids" invisible="1"/>
+                    <div class="alert alert-info mb-2" role="status"
+                         invisible="state in ('done', 'cancel') or keg_loaded_count == keg_expected_qty">
+                        Scan the kegs loaded on the truck:
+                        <field name="keg_loaded_count" class="fw-bold"/> / <field name="keg_expected_qty" class="fw-bold"/>.
+                        The delivery can only be validated once the kegs match the quantities delivered.
+                    </div>
+                    <group invisible="state in ('done', 'cancel')">
+                        <field name="keg_scan" placeholder="Scan a keg serial…"/>
+                    </group>
+                    <field name="keg_ids" readonly="state in ('done', 'cancel')" options="{'no_create': True}">
+                        <list>
+                            <field name="name"/>
+                            <field name="type_id"/>
+                            <field name="product_id"/>
+                            <field name="fill_date"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

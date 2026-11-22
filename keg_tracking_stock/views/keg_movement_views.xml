@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="keg_movement_view_list_stock" model="ir.ui.view">
+        <field name="name">keg.movement.list.stock</field>
+        <field name="model">keg.movement</field>
+        <field name="inherit_id" ref="keg_tracking.keg_movement_view_list"/>
+        <field name="arch" type="xml">
+            <field name="sale_order_id" position="after">
+                <field name="picking_id" optional="show" groups="stock.group_stock_user"/>
+            </field>
+        </field>
+    </record>
+</odoo>
