@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="keg_view_list" model="ir.ui.view">
+        <field name="name">keg.keg.list</field>
+        <field name="model">keg.keg</field>
+        <field name="arch" type="xml">
+            <list string="Kegs" decoration-danger="is_overdue" decoration-muted="state in ('lost', 'retired')" sample="1">
+                <header>
+                    <button name="action_open_fill_wizard" type="object" string="Fill" groups="keg_tracking.group_keg_operator"/>
+                    <button name="action_mark_cleaned" type="object" string="Mark as Cleaned" groups="keg_tracking.group_keg_operator"/>
+                    <button name="action_open_return_wizard" type="object" string="Return" groups="keg_tracking.group_keg_operator"/>
+                    <button name="action_open_lost_wizard" type="object" string="Declare Lost" groups="keg_tracking.group_keg_manager"/>
+                </header>
+                <field name="name"/>
+                <field name="type_id"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'available'"
+                       decoration-info="state in ('filled', 'at_customer')"
+                       decoration-warning="state in ('to_clean', 'maintenance')"
+                       decoration-danger="state == 'lost'"/>
+                <field name="product_id" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="dispatch_date" optional="show"/>
+                <field name="days_at_customer" string="Days Out" optional="show"/>
+                <field name="due_date" optional="hide"/>
+                <field name="deposit_amount_held" optional="hide" sum="Deposits held"/>
+                <field name="fill_count" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="is_overdue" column_invisible="True"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="keg_view_kanban" model="ir.ui.view">
+        <field name="name">keg.keg.kanban</field>
+        <field name="model">keg.keg</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" group_create="0" group_delete="0" group_edit="0"
+                    records_draggable="0" quick_create="0" sample="1">
+                <field name="state"/>
+                <field name="is_overdue"/>
+                <field name="days_at_customer"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between">
+                            <field name="name" class="fw-bold fs-5"/>
+                            <span t-if="record.is_overdue.raw_value" class="badge text-bg-danger">Overdue</span>
+                        </div>
+                        <field name="type_id" class="text-muted"/>
+                        <field name="product_id" invisible="not product_id" class="fw-semibold"/>
+                        <div t-if="record.state.raw_value == 'at_customer'" class="d-flex justify-content-between mt-1">
+                            <field name="partner_id" class="text-truncate"/>
+                            <span t-attf-class="badge #{record.is_overdue.raw_value ? 'text-bg-danger' : 'text-bg-light'}">
+                                <t t-out="record.days_at_customer.value"/> d
+                            </span>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="keg_view_form" model="ir.ui.view">
+        <field name="name">keg.keg.form</field>
+        <field name="model">keg.keg</field>
+        <field name="arch" type="xml">
+            <form string="Keg">
+                <header>
+                    <button name="action_open_fill_wizard" type="object" string="Fill" class="btn-primary"
+                            invisible="state != 'available'" groups="keg_tracking.group_keg_operator"/>
+                    <button name="action_mark_cleaned" type="object" string="Mark as Cleaned" class="btn-primary"
+                            invisible="state != 'to_clean'" groups="keg_tracking.group_keg_operator"/>
+                    <button name="action_open_return_wizard" type="object" string="Register Return" class="btn-primary"
+                            invisible="state != 'at_customer'" groups="keg_tracking.group_keg_operator"/>
+                    <button name="action_back_in_service" type="object" string="Back in Service" class="btn-primary"
+                            invisible="state != 'maintenance'" groups="keg_tracking.group_keg_operator"/>
+                    <button name="action_mark_recovered" type="object" string="Recovered"
+                            invisible="state != 'lost'" groups="keg_tracking.group_keg_manager"/>
+                    <button name="action_send_to_maintenance" type="object" string="Send to Maintenance"
+                            invisible="state not in ('available', 'to_clean', 'filled')"
+                            groups="keg_tracking.group_keg_operator"/>
+                    <button name="action_open_lost_wizard" type="object" string="Declare Lost"
+                            invisible="state != 'at_customer'" groups="keg_tracking.group_keg_manager"/>
+                    <button name="action_retire" type="object" string="Retire"
+                            invisible="state not in ('available', 'to_clean', 'maintenance', 'lost')"
+                            groups="keg_tracking.group_keg_manager"
+                            confirm="Retire this keg permanently from the fleet?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="available,filled,at_customer,to_clean"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_movements" type="object" class="oe_stat_button" icon="fa-history">
+                            <field name="movement_count" widget="statinfo" string="Movements"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Overdue" bg_color="text-bg-danger" invisible="not is_overdue"/>
+                    <widget name="web_ribbon" title="Lost" bg_color="text-bg-danger" invisible="state != 'lost'"/>
+                    <widget name="web_ribbon" title="Retired" bg_color="text-bg-secondary" invisible="state != 'retired'"/>
+                    <field name="is_overdue" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. AIG-30-0001" readonly="id"/></h1>
+                    </div>
+                    <group>
+                        <group string="Keg">
+                            <field name="type_id" readonly="id"/>
+                            <field name="acquisition_date"/>
+                            <field name="fill_count"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="id"/>
+                        </group>
+                        <group string="Contents" invisible="not product_id">
+                            <field name="product_id"/>
+                            <field name="fill_date"/>
+                        </group>
+                    </group>
+                    <group invisible="state not in ('at_customer', 'lost')">
+                        <group string="Custody">
+                            <field name="partner_id"/>
+                            <field name="sale_order_id"/>
+                            <field name="dispatch_date"/>
+                        </group>
+                        <group string="Rotation">
+                            <field name="due_date" invisible="state != 'at_customer'"/>
+                            <field name="days_at_customer" invisible="state != 'at_customer'"
+                                   decoration-danger="is_overdue"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="deposit_amount_held"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="History" name="history">
+                            <field name="movement_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="movement_type" widget="badge"
+                                           decoration-info="movement_type == 'dispatch'"
+                                           decoration-success="movement_type == 'return'"
+                                           decoration-danger="movement_type == 'lost'"/>
+                                    <field name="product_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="sale_order_id"/>
+                                    <field name="move_id" groups="account.group_account_invoice"/>
+                                    <field name="note"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note" placeholder="Condition, repairs, spear replacement…"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="keg_view_pivot" model="ir.ui.view">
+        <field name="name">keg.keg.pivot</field>
+        <field name="model">keg.keg</field>
+        <field name="arch" type="xml">
+            <pivot string="Keg Fleet" sample="1">
+                <field name="type_id" type="row"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="keg_view_graph" model="ir.ui.view">
+        <field name="name">keg.keg.graph</field>
+        <field name="model">keg.keg</field>
+        <field name="arch" type="xml">
+            <graph string="Keg Fleet" type="bar" stacked="1" sample="1">
+                <field name="state"/>
+                <field name="type_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="keg_view_search" model="ir.ui.view">
+        <field name="name">keg.keg.search</field>
+        <field name="model">keg.keg</field>
+        <field name="arch" type="xml">
+            <search string="Kegs">
+                <field name="name" string="Serial Number"/>
+                <field name="partner_id" operator="child_of"/>
+                <field name="product_id"/>
+                <field name="type_id"/>
+                <field name="sale_order_id"/>
+                <filter string="In Fleet" name="filter_fleet" domain="[('state', '!=', 'retired')]"/>
+                <separator/>
+                <filter string="At Brewery" name="filter_at_brewery"
+                        domain="[('state', 'in', ('available', 'filled', 'to_clean', 'maintenance'))]"/>
+                <filter string="Ready to Ship" name="filter_filled" domain="[('state', '=', 'filled')]"/>
+                <filter string="To Clean" name="filter_to_clean" domain="[('state', '=', 'to_clean')]"/>
+                <filter string="At Customers" name="filter_at_customer" domain="[('state', '=', 'at_customer')]"/>
+                <filter string="Overdue" name="filter_overdue" domain="[('is_overdue', '=', True)]"/>
+                <filter string="Lost" name="filter_lost" domain="[('state', '=', 'lost')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="Keg Type" name="groupby_type" context="{'group_by': 'type_id'}"/>
+                    <filter string="Beer" name="groupby_product" context="{'group_by': 'product_id'}"/>
+                    <filter string="Customer" name="groupby_partner" context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_keg" model="ir.actions.act_window">
+        <field name="name">Kegs</field>
+        <field name="res_model">keg.keg</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="context">{'search_default_filter_fleet': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Register your keg fleet</p>
+            <p>Create one record per physical keg, using the serial number engraved or tagged on it.
+               Each keg is then tracked from filling to the customer and back.</p>
+        </field>
+    </record>
+
+    <record id="action_keg_at_customer" model="ir.actions.act_window">
+        <field name="name">Kegs at Customers</field>
+        <field name="res_model">keg.keg</field>
+        <field name="view_mode">list,form,pivot</field>
+        <field name="context">{'search_default_filter_at_customer': 1, 'search_default_groupby_partner': 1, 'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No keg at customers</p>
+            <p>Kegs appear here once they are dispatched on a sales order, until the customer returns them.</p>
+        </field>
+    </record>
+</odoo>

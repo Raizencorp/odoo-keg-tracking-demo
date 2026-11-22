@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="keg_dispatch_wizard_view_form" model="ir.ui.view">
+        <field name="name">keg.dispatch.wizard.form</field>
+        <field name="model">keg.dispatch.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Dispatch Kegs">
+                <group>
+                    <field name="sale_order_id"/>
+                    <field name="partner_shipping_id"/>
+                    <field name="scan" placeholder="Scan the kegs loaded on the truck…"/>
+                </group>
+                <field name="line_ids">
+                    <list editable="bottom" create="0" delete="0">
+                        <field name="sale_line_id" column_invisible="True" force_save="1"/>
+                        <field name="product_id"/>
+                        <field name="keg_type_id"/>
+                        <field name="qty_remaining" readonly="1" force_save="1"/>
+                        <field name="keg_count" decoration-success="keg_count == qty_remaining"
+                               decoration-warning="keg_count &lt; qty_remaining"/>
+                        <field name="keg_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_confirm" type="object" string="Dispatch" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

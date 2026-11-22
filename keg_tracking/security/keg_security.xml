@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_keg_tracking" model="ir.module.category">
+        <field name="name">Keg Tracking</field>
+        <field name="description">Custody, deposits and losses of returnable kegs.</field>
+        <field name="sequence">25</field>
+    </record>
+
+    <record id="group_keg_user" model="res.groups">
+        <field name="name">Viewer</field>
+        <field name="category_id" ref="module_category_keg_tracking"/>
+        <field name="comment">Sees kegs, their location and history (e.g. sales representatives).</field>
+    </record>
+
+    <record id="group_keg_operator" model="res.groups">
+        <field name="name">Operator</field>
+        <field name="category_id" ref="module_category_keg_tracking"/>
+        <field name="implied_ids" eval="[Command.link(ref('group_keg_user'))]"/>
+        <field name="comment">Cellar and logistics staff: fills, dispatches, receives and cleans kegs.</field>
+    </record>
+
+    <record id="group_keg_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="category_id" ref="module_category_keg_tracking"/>
+        <field name="implied_ids" eval="[Command.link(ref('group_keg_operator'))]"/>
+        <field name="users" eval="[Command.link(ref('base.user_root')), Command.link(ref('base.user_admin'))]"/>
+        <field name="comment">Configures keg types and deposits, declares lost kegs, retires kegs.</field>
+    </record>
+
+    <!-- Sales representatives need to see the kegs held by their customers. -->
+    <record id="sales_team.group_sale_salesman" model="res.groups">
+        <field name="implied_ids" eval="[Command.link(ref('group_keg_user'))]"/>
+    </record>
+
+    <record id="keg_type_company_rule" model="ir.rule">
+        <field name="name">Keg types: multi-company</field>
+        <field name="model_id" ref="model_keg_type"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="keg_company_rule" model="ir.rule">
+        <field name="name">Kegs: multi-company</field>
+        <field name="model_id" ref="model_keg_keg"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="keg_movement_company_rule" model="ir.rule">
+        <field name="name">Keg movements: multi-company</field>
+        <field name="model_id" ref="model_keg_movement"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

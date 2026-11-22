@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_keg" model="ir.ui.view">
+        <field name="name">res.partner.form.keg</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_kegs" type="object" class="oe_stat_button" icon="fa-beer"
+                        groups="keg_tracking.group_keg_user" invisible="not keg_count">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="keg_count"/>
+                            <span class="text-danger" invisible="not keg_overdue_count">
+                                (<field name="keg_overdue_count"/> late)
+                            </span>
+                        </span>
+                        <span class="o_stat_text">
+                            Kegs · <field name="keg_deposit_held" widget="monetary"
+                                          options="{'currency_field': 'keg_currency_id'}"/>
+                        </span>
+                        <field name="keg_currency_id" invisible="1"/>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+
+    <record id="action_partner_keg_return" model="ir.actions.act_window">
+        <field name="name">Return Kegs</field>
+        <field name="res_model">keg.return.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_partner_id': active_id}</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_view_types">form</field>
+        <field name="groups_id" eval="[Command.link(ref('keg_tracking.group_keg_operator'))]"/>
+    </record>
+</odoo>

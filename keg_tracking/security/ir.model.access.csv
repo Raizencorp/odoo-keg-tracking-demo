@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_keg_type_user,keg.type user,model_keg_type,group_keg_user,1,0,0,0
+access_keg_type_manager,keg.type manager,model_keg_type,group_keg_manager,1,1,1,1
+access_keg_keg_user,keg.keg user,model_keg_keg,group_keg_user,1,0,0,0
+access_keg_keg_operator,keg.keg operator,model_keg_keg,group_keg_operator,1,1,1,0
+access_keg_keg_manager,keg.keg manager,model_keg_keg,group_keg_manager,1,1,1,1
+access_keg_movement_user,keg.movement user,model_keg_movement,group_keg_user,1,0,0,0
+access_keg_movement_operator,keg.movement operator,model_keg_movement,group_keg_operator,1,0,1,0
+access_keg_fill_wizard,keg.fill.wizard operator,model_keg_fill_wizard,group_keg_operator,1,1,1,1
+access_keg_dispatch_wizard,keg.dispatch.wizard operator,model_keg_dispatch_wizard,group_keg_operator,1,1,1,1
+access_keg_dispatch_wizard_line,keg.dispatch.wizard.line operator,model_keg_dispatch_wizard_line,group_keg_operator,1,1,1,1
+access_keg_return_wizard,keg.return.wizard operator,model_keg_return_wizard,group_keg_operator,1,1,1,1
+access_keg_lost_wizard,keg.lost.wizard manager,model_keg_lost_wizard,group_keg_manager,1,1,1,1
+access_sale_order_keg_operator,sale.order keg operator,sale.model_sale_order,group_keg_operator,1,0,0,0
+access_sale_order_line_keg_operator,sale.order.line keg operator,sale.model_sale_order_line,group_keg_operator,1,0,0,0

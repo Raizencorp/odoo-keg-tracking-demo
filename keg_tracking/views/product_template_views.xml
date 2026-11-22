@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_keg" model="ir.ui.view">
+        <field name="name">product.template.form.keg</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <field name="categ_id" position="after">
+                <field name="keg_type_id" invisible="type != 'consu'" options="{'no_create': True}"
+                       groups="keg_tracking.group_keg_user"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="product_template_search_view_keg" model="ir.ui.view">
+        <field name="name">product.template.search.keg</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="filter_to_sell" position="before">
+                <filter string="Draught (in kegs)" name="filter_keg" domain="[('keg_type_id', '!=', False)]"
+                        groups="keg_tracking.group_keg_user"/>
+                <separator/>
+            </filter>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_keg_root" name="Kegs" web_icon="keg_tracking,static/description/icon.png"
+              groups="keg_tracking.group_keg_user" sequence="45"/>
+
+    <menuitem id="menu_keg_fleet" name="Kegs" parent="menu_keg_root" action="action_keg" sequence="10"/>
+    <menuitem id="menu_keg_at_customer" name="At Customers" parent="menu_keg_root"
+              action="action_keg_at_customer" sequence="20"/>
+
+    <menuitem id="menu_keg_operations" name="Operations" parent="menu_keg_root" sequence="30"
+              groups="keg_tracking.group_keg_operator"/>
+    <menuitem id="menu_keg_fill" name="Fill Kegs" parent="menu_keg_operations"
+              action="action_keg_fill_wizard" sequence="10"/>
+    <menuitem id="menu_keg_dispatch" name="Orders to Dispatch" parent="menu_keg_operations"
+              action="action_sale_order_keg_dispatch" sequence="20"/>
+    <menuitem id="menu_keg_return" name="Return Kegs" parent="menu_keg_operations"
+              action="action_keg_return_wizard" sequence="30"/>
+
+    <menuitem id="menu_keg_reporting" name="Reporting" parent="menu_keg_root" sequence="40"/>
+    <menuitem id="menu_keg_movements" name="Movements" parent="menu_keg_reporting"
+              action="action_keg_movement" sequence="10"/>
+
+    <menuitem id="menu_keg_config" name="Configuration" parent="menu_keg_root" sequence="90"
+              groups="keg_tracking.group_keg_manager"/>
+    <menuitem id="menu_keg_type" name="Keg Types" parent="menu_keg_config" action="action_keg_type" sequence="10"/>
+</odoo>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_keg" model="ir.ui.view">
+        <field name="name">sale.order.form.keg</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <button id="create_invoice" position="before">
+                <button name="action_open_keg_dispatch" type="object" string="Dispatch Kegs" class="btn-primary"
+                        invisible="keg_dispatch_status not in ('to_dispatch', 'partial')"
+                        groups="keg_tracking.group_keg_operator" data-hotkey="k"/>
+            </button>
+            <div name="button_box" position="inside">
+                <button name="action_view_kegs" type="object" class="oe_stat_button" icon="fa-beer"
+                        invisible="not keg_dispatch_status" groups="keg_tracking.group_keg_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="keg_dispatched_qty"/> / <field name="keg_ordered_qty"/>
+                        </span>
+                        <span class="o_stat_text">
+                            Kegs Out<span invisible="not keg_held_count"> · <field name="keg_held_count"/> held</span>
+                        </span>
+                    </div>
+                </button>
+            </div>
+            <field name="payment_term_id" position="after">
+                <field name="keg_dispatch_status" invisible="not keg_dispatch_status" widget="badge"
+                       decoration-warning="keg_dispatch_status == 'to_dispatch'"
+                       decoration-info="keg_dispatch_status == 'partial'"
+                       decoration-success="keg_dispatch_status == 'dispatched'"/>
+            </field>
+            <!-- Deposit lines are managed automatically from the draught lines. -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="attributes">
+                <attribute name="readonly">is_downpayment or deposit_keg_type_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='qty_delivered']" position="attributes">
+                <attribute name="readonly">qty_delivered_method != 'manual' or is_downpayment or keg_type_id or deposit_keg_type_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="before">
+                <field name="keg_type_id" column_invisible="True"/>
+                <field name="deposit_keg_type_id" column_invisible="True"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_order_tree_keg" model="ir.ui.view">
+        <field name="name">sale.order.list.keg</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="invoice_status" position="before">
+                <field name="keg_dispatch_status" optional="show" widget="badge"
+                       decoration-warning="keg_dispatch_status == 'to_dispatch'"
+                       decoration-info="keg_dispatch_status == 'partial'"
+                       decoration-success="keg_dispatch_status == 'dispatched'"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_sales_order_filter_keg" model="ir.ui.view">
+        <field name="name">sale.order.search.keg</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_sales_order_filter"/>
+        <field name="arch" type="xml">
+            <filter name="my_sale_orders_filter" position="after">
+                <separator/>
+                <filter string="Kegs to Dispatch" name="filter_keg_to_dispatch"
+                        domain="[('keg_dispatch_status', 'in', ('to_dispatch', 'partial'))]"/>
+            </filter>
+        </field>
+    </record>
+
+    <!-- Logistics entry point: confirmed orders waiting for their kegs. -->
+    <record id="action_sale_order_keg_dispatch" model="ir.actions.act_window">
+        <field name="name">Orders to Dispatch</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="sale.view_order_tree"/>
+        <field name="domain">[('keg_dispatch_status', '!=', False)]</field>
+        <field name="context">{'search_default_filter_keg_to_dispatch': 1, 'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nothing to dispatch</p>
+            <p>Confirmed sales orders containing draught beer appear here until all their kegs have left the brewery.</p>
+        </field>
+    </record>
+</odoo>

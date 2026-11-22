@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_activity_type_overdue_kegs" model="mail.activity.type">
+        <field name="name">Collect Overdue Kegs</field>
+        <field name="summary">Overdue kegs to collect</field>
+        <field name="icon">fa-beer</field>
+        <field name="res_model">res.partner</field>
+        <field name="delay_count">3</field>
+        <field name="delay_unit">days</field>
+        <field name="delay_from">current_date</field>
+    </record>
+</odoo>

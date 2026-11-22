@@ -1,0 +1,7 @@
+# Local runtime (Odoo source, portable PostgreSQL, venv, database files)
+_runtime/
+__pycache__/
+*.pyc
+
+# Local working notes
+prompt.txt

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="keg_type_view_list" model="ir.ui.view">
+        <field name="name">keg.type.list</field>
+        <field name="model">keg.type</field>
+        <field name="arch" type="xml">
+            <list string="Keg Types">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="capacity"/>
+                <field name="deposit_amount"/>
+                <field name="replacement_value"/>
+                <field name="max_days_at_customer"/>
+                <field name="keg_count"/>
+                <field name="keg_at_customer_count"/>
+                <field name="keg_overdue_count" decoration-danger="keg_overdue_count &gt; 0"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="keg_type_view_form" model="ir.ui.view">
+        <field name="name">keg.type.form</field>
+        <field name="model">keg.type</field>
+        <field name="arch" type="xml">
+            <form string="Keg Type">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_fleet" type="object" class="oe_stat_button" icon="fa-cubes">
+                            <field name="keg_count" widget="statinfo" string="Fleet"/>
+                        </button>
+                        <button name="action_view_at_customer" type="object" class="oe_stat_button" icon="fa-truck">
+                            <field name="keg_at_customer_count" widget="statinfo" string="At Customers"/>
+                        </button>
+                        <button name="action_view_overdue" type="object" class="oe_stat_button" icon="fa-clock-o"
+                                invisible="not keg_overdue_count">
+                            <field name="keg_overdue_count" widget="statinfo" string="Overdue"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Stainless keg 30 L"/></h1>
+                    </div>
+                    <group>
+                        <group string="Container">
+                            <field name="capacity"/>
+                            <field name="max_days_at_customer"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Deposit &amp; Losses">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="deposit_amount"/>
+                            <field name="replacement_value"/>
+                            <field name="deposit_product_id"/>
+                            <field name="loss_product_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_keg_type" model="ir.actions.act_window">
+        <field name="name">Keg Types</field>
+        <field name="res_model">keg.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Define your first keg type</p>
+            <p>A keg type sets the deposit charged to customers, the replacement value of a lost keg
+               and how long a customer may keep it before a reminder is sent.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_notify_overdue_kegs" model="ir.cron">
+        <field name="name">Keg Tracking: remind salespeople of overdue kegs</field>
+        <field name="model_id" ref="model_keg_keg"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_notify_overdue_kegs()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 05:00:00')"/>
+    </record>
+</odoo>
