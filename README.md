@@ -8,6 +8,7 @@ reminds sales reps about kegs sitting idle at customers, and bills customers for
 - **`keg_tracking`:** core module, depends only on `sale_management`
 - **`keg_tracking_stock`:** optional bridge, installed automatically when the Inventory app is present
 - **Tests:** 25 automated tests
+- **Odoo 20 port:** https://github.com/Raizencorp/odoo-keg-tracking-v20-migration (18 → 20 migration, documented change by change)
 - **Author:** Cyril Gainon · License LGPL-3
 
 | Keg fleet by status | Keg record: custody, rotation, history |
